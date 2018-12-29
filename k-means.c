@@ -3,30 +3,30 @@
 #include <time.h>
 #include <string.h>
 
-int main()
+int main(int argc, char *argv[])
 {
 
-    int n = 0;          // n Elements  // For all loops always i < n-1 !!WARNING SOS!!                 // return 0 --> programm ended
+    int n = 0;          // n Elements  // For all loops always i < n !!WARNING SOS!!                 // return 0 --> programm ended
     int k;              // k clusters                                                                  // return -1 --> problem with the given file
     int i, j;           // i counter for n, j counter for k
     int d;              // d counter for dimensions
-    char fileName[100]; // The Variable for loading Custom Dataset
+    char filename[100]; // The Variable for loading Custom Dataset
     int dim = 0;        // Dimensions of Elements
     char c;             // Temporary character for file analysis
     int a = 1;          // Use a = 1 to generate random Centroids
 		int iteration = 0;  // Amount of repetitions
 		int flag_end = 0;   // Flag for ending k-means
 		int flag = -1;      // Flag for filtering
-
+    srand(time(NULL));
 /* -------------------------------------------------------------------------- */
     // Reading Dataset, counting n elements, assigning to X Array
 
-    FILE *Dataset;
+    FILE* Dataset;
 
        printf("\n Give the DataSet file:");
-       scanf("%s", fileName);
+       scanf("%s", filename);
 
-    Dataset = fopen(fileName, "r");
+    Dataset = fopen(filename, "r");
     if (!Dataset)
     {
         printf("\n There is something wrong with the file! \n\n");
@@ -55,19 +55,19 @@ int main()
     } while (!feof(Dataset));
 
     rewind(Dataset); // File reset
-
-    printf("\n Elements:%d \n", n - 1);
+  n--;
+    printf("\n Elements:%d \n", n);
     printf("\n Dimensions:%d \n", dim);
 
 /* -------------------------------------------------------------------------- */
     printf("\n Choose the amount of Clusters:");
     scanf("%d", &k);
 /* -------------------------------------------------------------------------- */
-    // All the necessary memory alocation
+    // All the necessary memory allocation
 
     double **X;  // Array of Elements
-    X = calloc(n - 1, sizeof(double));
-    for (d = 0; d < n - 1; d++)
+    X = calloc(n, sizeof(double));
+    for (d = 0; d < n; d++)
         X[d] = calloc(dim, sizeof(double));
 
     double **V;  // Array of Centroids
@@ -76,8 +76,8 @@ int main()
         V[d] = calloc(dim, sizeof(double));
 
     double **C;  // Array of Clusters                                            //C[n][dim+1] --> C[n][0] always stands for j
-    C = calloc(k * (n - 1), sizeof(double));
-    for (d = 0; d <= k*(n - 1); d++)
+    C = calloc(k * (n), sizeof(double));
+    for (d = 0; d <= k*(n); d++)
         C[d] = calloc((dim+1), sizeof(double));
 
     double **FlagCentroids;  // Array of flag Centroids
@@ -94,15 +94,15 @@ int main()
 		   totalCluster[d] = calloc(dim,sizeof(double));
 
 		double **distance;  // Array of Distance
-		distance = calloc(n-1,sizeof(double));
-			 for(j = 0; j < n-1; j++)
+		distance = calloc(n,sizeof(double));
+			 for(j = 0; j < n; j++)
 			 distance[j] = calloc(k,sizeof(double));
 
     double *min;  // Array of minimum distance
-    min = calloc(n-1,sizeof(double));
+    min = calloc(n,sizeof(double));
 
     int *location;  // Array of Locations
-    location = calloc(n-1,sizeof(int));
+    location = calloc(n,sizeof(int));
 
     FILE** Cluster = calloc(k+1,sizeof(FILE*));
 
@@ -114,10 +114,13 @@ int main()
 
 
 
+
 /* -------------------------------------------------------------------------- */
     // Passing elements to Array X[n][dim]
 
-    for (i = 0; !feof(Dataset) && i < n - 1; i++)
+
+   while(!feof(Dataset))
+    for (i = 0;  i < n; i++)
     {
         for (d = 0; d < dim; d++)
         {
@@ -126,16 +129,21 @@ int main()
     }
 
 
+
     fclose(Dataset);
 /* -------------------------------------------------------------------------- */
     // Generating Initial Random Centroids
 
     for (j = 0; j < k; j++)
     {
-      i = ((rand() % ((n - 1) - a + 1)) + a);
+      i = ((rand() % ((n) - a + 1)) + a);
         for (d = 0; d < dim; d++)
             V[j][d] = X[i][d];
     }
+
+
+
+
 /* -------------------------------------------------------------------------- */
 
 
@@ -159,14 +167,14 @@ int main()
 
           for(j = 0; j < k; j++)
              for(d = 0; d < dim; d++)
-               {atom://teletype/portal/ac639697-42d6-4f8d-9adb-519107799f97
+               {
                  totalCluster[j][d] = 0;
                  counter[j] = 0;
                }
 /* -------------------------------------------------------------------------- */
   // Calculating Distances of each element for each cluster and each dimension
 
-          for(i = 0; i < n-1; i++)
+          for(i = 0; i < n; i++)
              for(j = 0; j < k; j++)
                for(d = 0; d < dim; d++)
              distance[i][j] += ((X[i][d] - V[j][d])*(X[i][d] - V[j][d]));
@@ -175,7 +183,7 @@ int main()
 /* -------------------------------------------------------------------------- */
       // Comparing Distances and getting the proper Cluster for each Element
 
-      for(i=0;i < n-1;i++)
+      for(i=0;i < n;i++)
       {
           min[i]=distance[i][0];
           for(j=0;j < k;j++)
@@ -192,10 +200,10 @@ int main()
 /* -------------------------------------------------------------------------- */
       // Getting Elements and Clusters all together
 
-      for(i = 0; i < n-1; i++)
+      for(i = 0; i < n; i++)
       C[i][0] = location[i];
 
-      for(i = 0; i < n-1; i++)
+      for(i = 0; i < n; i++)
          for(d = 1; d <= dim; d++)
        C[i][d] = X[i][d-1];
 
@@ -203,7 +211,7 @@ int main()
 /* -------------------------------------------------------------------------- */
       // Calculating total Sum of each dim for each cluster and counter
 
-       for(i = 0; i < n-1; i++)
+       for(i = 0; i < n; i++)
           for(j = 0; j < k; j++)
              for(d = 0; d < dim; d++)
               if(C[i][0] == j)
@@ -229,6 +237,7 @@ int main()
                     if(FlagCentroids[j][d] != V[j][d])
                     {
                         flag_end = 0;
+                        break;
                     }else
                     {
                         flag_end = -1;
@@ -252,12 +261,12 @@ printf("\n\n Amount of Iterations: %d\n\n",iteration+1);
    for(j = 0 ; j < k ; j++)
    {
      char fileName [100];
-     sprintf(fileName,"Cluster_%d.csv",j);
+     sprintf(fileName,"Cluster_%d.txt",j);
       Cluster[j] = fopen(fileName,"w");
    }
- c = '\n';
 
-for(i = 0; i < n-1; i++){
+
+for(i = 0; i < n; i++){
    for( j = 0; j < k; j++){
       for(d = 1; d <= dim; d++){
           if(C[i][0] == j){
@@ -277,7 +286,7 @@ fclose(Cluster[j]);
 
 
 //Creating and writing to a file the Final Centroids
-Centroids = fopen("FinalCentroids.csv","w");
+Centroids = fopen("FinalCentroids.txt","w");
 
 for(j = 0; j < k; j++){
     if(j != 0)
@@ -299,14 +308,14 @@ char str[MAX];
 for(j = 0 ; j < k ; j++)
 {
   char fileName [100] ;
-  sprintf(fileName,"Cluster_%d.csv",j);
+  sprintf(fileName,"Cluster_%d.txt",j);
    initialFile[j] = fopen(fileName,"r");
 }
 
 for(j = 0 ; j < k ; j++)
 {
   char fileName [100] ;
-  sprintf(fileName,"c%d.csv",j);
+  sprintf(fileName,"c%d.txt",j);
    finalFile[j] = fopen(fileName,"w");
 }
 
@@ -330,15 +339,202 @@ fclose(initialFile[j]);
 
 for(j = 0; j < k; j++)
 fclose(finalFile[j]);
-
+/* -------------------------------------------------------------------------- */
 //Deleting Useless Files
 for(j = 0 ; j < k ; j++)
 {
   char fileName [100] ;
-  sprintf(fileName,"Cluster_%d.csv",j);
+  sprintf(fileName,"Cluster_%d.txt",j);
    remove(fileName);
 }
+for(j = 20 ; j >= k ; j--)
+{
+  char fileName [100] ;
+  sprintf(fileName,"c%d.txt",j);
+   remove(fileName);
+}
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+//Calculating Percentage of Errors for each Cluster
 
+/* -------------------------------------------------------------------------- */
+int nE = 0; // Amount of Error Elements
+FILE* ErrorFile; //Variable for manipulating Files used for Error Testing
+ErrorFile = fopen("error_positions_for_frame_no_0","r");
+int e; //Counter for Errors
+int ErrorCounter; //Counter of Errors for each Cluster
+int sum = 0; //Used to contain the Errors Found in each Cluster Alltogether
+/* -------------------------------------------------------------------------- */
+
+// Finding the number of Error Elements
+do
+{
+    fscanf(ErrorFile, "%c", &c);
+    if (c == '\n')
+        nE++;
+} while (!feof(ErrorFile));
+
+rewind(ErrorFile); // File reset
+nE--;
+printf("\n Error Elements:%d \n", nE);
+printf("\n");
+
+/* -------------------------------------------------------------------------- */
+ //Array for storing Error Positions
+int *ErrorValues;
+ErrorValues = calloc(nE,sizeof(int)); //Allocating Memory
+
+
+/* -------------------------------------------------------------------------- */
+
+//Getting the actual positions into the array from the file
+while(!feof(ErrorFile))
+ for (i = 0;  i < nE; i++)
+  fscanf(ErrorFile, "%d", &ErrorValues[i]);
+
+fclose(ErrorFile);
+
+/* -------------------------------------------------------------------------- */
+
+//Creating a file which Contains the Value of each Error position
+ErrorFile = fopen("ErrorValues.txt","w");
+for(j = 0; j < nE; j++)
+  for(i = 0; i < n; i++){
+     if(ErrorValues[j] == i){
+     for(d = 1; d <=dim; d++){
+       fprintf(ErrorFile, "%lf",C[i][d]);
+       if(d < dim )
+         fprintf(ErrorFile,", ");
+   }
+    fprintf(ErrorFile, "\n" );
+  }
+  }
+
+fclose(ErrorFile);
+
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+//Getting and Storing the Error Elements into an Array
+ErrorFile = fopen("ErrorValues.txt","r");
+
+double **ErrorElements;  // Array of Cluster Element
+ErrorElements = calloc(nE, sizeof(double));
+for (d = 0; d < nE; d++)
+    ErrorElements[d] = calloc(dim, sizeof(double));
+
+       while(!feof(ErrorFile))
+           for (e = 0;  e < nE; e++)
+           {
+               for (d = 0; d < dim; d++)
+               {
+                   fscanf(ErrorFile, "%lf,", &ErrorElements[e][d]);
+               }
+           }
+
+fclose(ErrorFile);
+/* -------------------------------------------------------------------------- */
+
+ double **ClusterComp;  // Array Containing the Elements of each Cluster
+ClusterComp = calloc(n, sizeof(double*));
+for (d = 0; d < n; d++)
+    ClusterComp[d] = calloc(dim, sizeof(double));
+
+
+
+/* -------------------------------------------------------------------------- */
+
+//Starting the loop for each Cluster
+j = 0;
+do{
+/* -------------------------------------------------------------------------- */
+
+n = 0;//Size of Cluster elements
+dim = 0;//Size of DimensionsS
+/* -------------------------------------------------------------------------- */
+
+/* -------------------------------------------------------------------------- */
+//Opening File Which Contains the Cluster
+  char fileName [100];
+  sprintf(fileName,"c%d.txt",j);
+   finalFile[j] = fopen(fileName,"r");
+/* -------------------------------------------------------------------------- */
+   // Finding the dimensions of Elements of  Cluster
+
+   do
+   {
+       fscanf(finalFile[j], "%c", &c);
+       if (c == ',')
+           dim++;
+   } while (c != '\n');
+      dim++;
+   rewind(finalFile[j]); // File reset
+
+/* -------------------------------------------------------------------------- */
+   // Finding the number of elements of Cluster
+
+   do
+   {
+       fscanf(finalFile[j], "%c", &c);
+       if (c == '\n')
+           n++;
+   } while (!feof(finalFile[j]));
+
+   rewind(finalFile[j]); // File reset
+n--;
+
+/* -------------------------------------------------------------------------- */
+
+//Storing to array ClusterComp the Elements of Cluster
+      while(!feof(finalFile[j]))
+      {
+       for (i = 0;  i < n; i++)
+       {
+           for (d = 0; d < dim; d++)
+           {
+               fscanf(finalFile[j], "%lf,", &ClusterComp[i][d]);
+           }
+       }
+     }
+/* -------------------------------------------------------------------------- */
+  ErrorCounter = 0;
+  /* -------------------------------------------------------------------------- */
+//Calculating the Error Elements at Cluster
+       for(e = 0; e < nE; e++)
+       {
+         for(i = 0; i < n; i++)
+             for(d = 0; d < dim; d++)
+              if(ErrorElements[e][d] == ClusterComp[i][d])
+              ErrorCounter++;
+            }
+
+/* -------------------------------------------------------------------------- */
+
+  sum += ErrorCounter;
+/* -------------------------------------------------------------------------- */
+//Printing Total Amount of Errors inside the Cluster and the Percentage of Elements that belongs to Error Elements
+  printf("\n Cluster %d has %d Error Values ",j,(ErrorCounter)/dim);
+  printf("\n Cluster %d has %lf%c error of total %d Elements\n",j,((double)(ErrorCounter)/n)*100,'%',n);
+/* -------------------------------------------------------------------------- */
+//Closing Cluster File
+  fclose(finalFile[j]);
+  /* -------------------------------------------------------------------------- */
+  //Getting to Next Cluster
+  j++;
+  /* -------------------------------------------------------------------------- */
+}while ( j < k);
+
+  /* -------------------------------------------------------------------------- */
+  //Used to Calculate the mean of the extra Errors from the Counter because of Duplicate Elements into the Dataset
+/*
+int v = sum - nE;
+printf("\n Sum: %d \n",sum );
+printf("\n Mean : %d \n",v );
+int mesiApoklisi = v/k;
+printf("\n Apoklisi : %d\n",mesiApoklisi );
+*/
+  /* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
     // FREE EVERYTHING
 
@@ -354,6 +550,10 @@ for(j = 0 ; j < k ; j++)
     free(Cluster);
     free(initialFile);
     free(finalFile);
+    free(ErrorValues);
+    free(ErrorElements);
+    free(ClusterComp);
+
 
     return 0;
 }
